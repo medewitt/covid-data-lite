@@ -1,5 +1,14 @@
-library(tidyverse)
 library(data.table)
+library(dplyr)
+
+# retrieve old data -------------------------------------------------------
+
+current_data <- data.table::fread(here::here("data", "timeseries", "nc-cases-county.csv"))
+#current_data <- current_data[county=="Guilford"]
+current_data[,date:=as.Date(date)]
+
+if(max(current_data$date) < Sys.Date()){
+
 
 
 # retrieve new data -------------------------------------------------------
@@ -10,11 +19,6 @@ out <- jsonlite::fromJSON(readLines("https://services.arcgis.com/iFBq2AW9XO0jYYF
 attribute_out <- out$features$attributes
 
 setDT(attribute_out)
-# retrieve old data -------------------------------------------------------
-
-current_data <- data.table::fread(here::here("data", "timeseries", "nc-cases-county.csv"))
-#current_data <- current_data[county=="Guilford"]
-current_data[,date:=as.Date(date)]
 
 
 # clean new data ----------------------------------------------------------
@@ -58,4 +62,5 @@ dat_combined[,deaths_daily := fifelse(deaths_daily <0 , 0, deaths_daily)]
 
 if(sum(dat_combined[date==max(date)]$cases_daily)>1){
   data.table::fwrite(dat_combined, here::here("data", "timeseries", "nc-cases-county.csv"))
+}
 }
